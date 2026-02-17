@@ -20,10 +20,11 @@
     <student>
         <name>
             <!-- Insert your full name on the line below. -->
-            
+            Nathan Su
         </name>
         <studentid>
             <!-- Insert your student ID number below. -->
+            908 414 0293
         </studentid>
     </student>
 
@@ -32,13 +33,14 @@
     <!-- BEGIN PROBLEM 1 -->
     <answer number="1a">
         <!-- Paste your solution to problem 1, part (a) below this line. --><![CDATA[
-
+            $$\pi_{name}\Bigl(\sigma_{affiliation="UW-Madison"}(Person) \bowtie Author \bowtie \bigl(Article \bowtie \sigma_{year=2021}(Conference)\bigr)\Bigr)$$
 
 
         ]]><!-- End problem 1, part (a). -->
     </answer>
     <answer number="1b">
         <!-- Paste your solution to problem 1, part (b) below this line. --><![CDATA[
+            $$\pi_{name}(\sigma_{name \neq "John Doe"}(Person \Join Author \Join (\pi_{artid}(\sigma_{name = "John Doe"}(Person \Join Author)))))$$
 
 
 
@@ -46,7 +48,7 @@
     </answer>
     <answer number="1c">
         <!-- Paste your solution to problem 1, part (c) below this line. --><![CDATA[
-
+            $$\gamma_{pid, COUNT(artid)}((\sigma_{name = "PODS"}(Conference)) \Join Article \Join Author)$$
 
 
         ]]><!-- End problem 1, part (c). -->
@@ -59,6 +61,7 @@
     <!-- BEGIN PROBLEM 2 -->
     <answer number="2a">
         <!-- Paste your solution to problem 2, part (a) below this line. --><![CDATA[
+            %sql SELECT group_concat(val, ' , ') AS "C" FROM (SELECT A.i, A.j, A.val + B.val AS "VAL" FROM A JOIN B WHERE A.i = B.i AND A.j = B.j) GROUP BY i;
 
 
 
@@ -66,6 +69,7 @@
     </answer>
     <answer number="2b">
         <!-- Paste your solution to problem 2, part (b) below this line. --><![CDATA[
+            SELECT SUM(A.val * B.val) AS "VAL" FROM A JOIN B ON A.i = B.i WHERE A.j = 1 AND B.j = 2;
 
 
 
@@ -73,6 +77,15 @@
     </answer>
     <answer number="2c">
         <!-- Paste your solution to problem 2, part (c) below this line. --><![CDATA[
+            SELECT group_concat(result_val, ' , ') AS "C" FROM
+            (SELECT
+                A.i AS result_row,
+                B.j AS result_col,
+                SUM(A.val * B.val) AS result_val
+            FROM A JOIN B ON A.j = B.i
+            GROUP BY A.i, B.j
+            ORDER BY result_row, result_col)
+            GROUP BY result_row;
 
 
 
@@ -80,6 +93,24 @@
     </answer>
     <answer number="2d">
         <!-- Paste your solution to problem 2, part (d) below this line. --><![CDATA[
+            SELECT group_concat(val, ' , ') AS "C" FROM
+
+            (SELECT
+                A.i AS i,
+                A3.j AS j,
+                SUM(A.val * A3.val) AS val
+            FROM A JOIN 
+            (SELECT
+                A.i AS i,
+                A2.j AS j,
+                SUM(A.val * A2.val) AS val
+            FROM A JOIN A AS "A2" ON A.j = A2.i
+            GROUP BY A.i, A2.j
+            ORDER BY i, j) AS "A3" ON A.j = A3.i
+            GROUP BY A.i, A3.j
+            ORDER BY i, j)
+
+            GROUP BY i;
 
 
 
@@ -91,6 +122,16 @@
     <!-- BEGIN PROBLEM 3 -->
     <answer number="3a">
         <!-- Paste your solution to problem 3, part (a) below this line. --><![CDATA[
+        WITH HolidaySales AS (
+            SELECT Sales.Store, SUM(WeeklySales) AS AllSales
+            FROM Sales JOIN Holidays ON Sales.WeekDate = Holidays.WeekDate JOIN Stores ON Sales.Store = Stores.Store
+            WHERE Holidays.IsHoliday = 'TRUE'
+            GROUP BY Sales.Store
+        )
+
+        SELECT Store, AllSales
+        FROM HolidaySales
+        WHERE AllSales = (SELECT MAX(AllSales) FROM HolidaySales)
 
 
 
@@ -98,6 +139,16 @@
     </answer>
     <answer number="3b">
         <!-- Paste your solution to problem 3, part (b) below this line. --><![CDATA[
+        WITH OverallWeeklySales AS (
+            SELECT Sales.WeekDate, IsHoliday, SUM(WeeklySales) AS WeeklySales
+            FROM Sales JOIN Holidays ON Sales.WeekDate = Holidays.WeekDate
+            GROUP BY Sales.WeekDate
+        )
+
+        SELECT COUNT(WeekDate) AS NumNonHolidays FROM OverallWeeklySales
+        WHERE IsHoliday = 'FALSE' AND WeeklySales > (SELECT AVG(WeeklySales) AS AvgHolidaySales
+        FROM OverallWeeklySales
+        WHERE IsHoliday = 'TRUE')
 
 
 
@@ -105,6 +156,10 @@
     </answer>
     <answer number="3c">
         <!-- Paste your solution to problem 3, part (c) below this line. --><![CDATA[
+        SELECT type, SUM(WeeklySales) AS TotalSales
+        FROM Sales JOIN Stores ON Stores.Store = Sales.Store
+        WHERE WeekDate LIKE '%-06-%' OR WeekDate LIKE '%-07-%' OR WeekDate LIKE '%-08-%'
+        GROUP BY type
 
 
 
@@ -116,7 +171,24 @@
     <!-- BEGIN PROBLEM 4 -->
     <answer number="4a">
         <!-- Paste your solution to problem 4, part (a) below this line. --><![CDATA[
+        SELECT company, MIN(distance) AS "distance"
+        FROM
+        (SELECT B AS "company", d AS "distance"
+        FROM streets
+        WHERE A = 'UW-Madison' AND d <= 9
 
+        UNION
+
+        SELECT hop2.B AS "company", hop1.d + hop2.d AS "distance"
+        FROM streets AS "hop1" JOIN streets AS "hop2" ON hop1.B = hop2.A
+        WHERE hop1.A = "UW-Madison" AND hop1.direction = "F" AND hop2.direction = "F" AND hop1.d + hop2.d <=9 
+
+        UNION
+
+        SELECT hop3.B AS "company", hop1.d + hop2.d + hop3.d AS "distance"
+        FROM streets AS "hop1" JOIN streets AS "hop2" ON hop1.B = hop2.A JOIN streets AS "hop3" ON hop2.B = hop3.A
+        WHERE hop1.A = "UW-Madison" AND hop1.direction = "F" AND hop2.direction = "F" AND hop3.direction = "F" AND hop3.B != "UW-Madison" AND hop1.d + hop2.d + hop3.d <=9)
+        GROUP BY company
 
 
         ]]><!-- End problem 4, part (a). -->
@@ -124,12 +196,45 @@
     <answer number="4b">
         <!-- Paste your solution to problem 4, part (b) below this line. --><![CDATA[
 
+        DROP VIEW IF EXISTS UWToB;
+        CREATE VIEW UWToB AS
+        SELECT A, B, MIN(d) AS "d"
+        FROM
+        (SELECT A, B, d
+        FROM streets
+        WHERE A = 'UW-Madison'
 
+        UNION
+
+        SELECT hop1.A, hop2.B, hop1.d + hop2.d
+        FROM streets AS "hop1" JOIN streets AS "hop2" ON hop1.B = hop2.A
+        WHERE hop1.A = "UW-Madison" AND hop1.direction = "F" AND hop2.direction = "F")
+        GROUP BY A, B;
+
+
+        SELECT A, B, TotalDistance
+        FROM
+        (SELECT AToUW.A, UWToB.B, MIN(AToUW.A, UWToB.B) || "-" || MAX(AToUW.A, UWToB.B) AS "path", AToUW.d + UWToB.d AS "TotalDistance"
+        FROM (SELECT A, B, d
+        FROM streets
+        WHERE B = 'UW-Madison'
+
+        UNION
+
+        SELECT hop1.A, hop2.B, hop1.d + hop2.d
+        FROM streets AS "hop1" JOIN streets AS "hop2" ON hop1.B = hop2.A
+        WHERE hop2.B = "UW-Madison" AND hop1.direction = "F" AND hop2.direction = "F") AS AToUW JOIN UWToB ON AToUW.B = UWToB.A
+        WHERE AToUW.A != UWToB.B AND TotalDistance <= 15
+        GROUP BY path)
 
         ]]><!-- End problem 4, part (b). -->
     </answer>
     <answer number="4c">
         <!-- Paste your solution to problem 4, part (c) below this line. --><![CDATA[
+
+        SELECT hop1.A, hop2.A AS "B", hop3.A AS "C", hop1.d + hop2.d + hop3.d as "TotalDistance"
+        FROM streets AS "hop1" JOIN streets AS "hop2" ON hop1.B = hop2.A JOIN streets AS "hop3" ON hop2.B = hop3.A
+        WHERE hop3.B = hop1.A AND hop1.id < hop2.id AND hop1.id < hop3.id
 
 
 
