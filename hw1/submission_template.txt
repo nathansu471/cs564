@@ -61,7 +61,7 @@
     <!-- BEGIN PROBLEM 2 -->
     <answer number="2a">
         <!-- Paste your solution to problem 2, part (a) below this line. --><![CDATA[
-            %sql SELECT group_concat(val, ' , ') AS "C" FROM (SELECT A.i, A.j, A.val + B.val AS "VAL" FROM A JOIN B WHERE A.i = B.i AND A.j = B.j) GROUP BY i;
+            SELECT group_concat(val, ' , ') AS "C" FROM (SELECT A.i, A.j, A.val + B.val AS "VAL" FROM A JOIN B WHERE A.i = B.i AND A.j = B.j) GROUP BY i;
 
 
 
@@ -77,15 +77,15 @@
     </answer>
     <answer number="2c">
         <!-- Paste your solution to problem 2, part (c) below this line. --><![CDATA[
-            SELECT group_concat(result_val, ' , ') AS "C" FROM
-            (SELECT
-                A.i AS result_row,
-                B.j AS result_col,
-                SUM(A.val * B.val) AS result_val
-            FROM A JOIN B ON A.j = B.i
-            GROUP BY A.i, B.j
-            ORDER BY result_row, result_col)
-            GROUP BY result_row;
+        SELECT group_concat(result_val, ' , ') AS "C" FROM
+        (SELECT
+            A.i AS result_row,
+            B.j AS result_col,
+            SUM(A.val * B.val) AS result_val
+        FROM A JOIN B ON A.j = B.i
+        GROUP BY A.i, B.j
+        ORDER BY result_row, result_col)
+        GROUP BY result_row;
 
 
 
@@ -93,24 +93,24 @@
     </answer>
     <answer number="2d">
         <!-- Paste your solution to problem 2, part (d) below this line. --><![CDATA[
-            SELECT group_concat(val, ' , ') AS "C" FROM
+        SELECT group_concat(val, ' , ') AS "C" FROM
 
-            (SELECT
-                A.i AS i,
-                A3.j AS j,
-                SUM(A.val * A3.val) AS val
-            FROM A JOIN 
-            (SELECT
-                A.i AS i,
-                A2.j AS j,
-                SUM(A.val * A2.val) AS val
-            FROM A JOIN A AS "A2" ON A.j = A2.i
-            GROUP BY A.i, A2.j
-            ORDER BY i, j) AS "A3" ON A.j = A3.i
-            GROUP BY A.i, A3.j
-            ORDER BY i, j)
+        (SELECT
+            A.i AS i,
+            A3.j AS j,
+            SUM(A.val * A3.val) AS val
+        FROM A JOIN 
+        (SELECT
+            A.i AS i,
+            A2.j AS j,
+            SUM(A.val * A2.val) AS val
+        FROM A JOIN A AS "A2" ON A.j = A2.i
+        GROUP BY A.i, A2.j
+        ORDER BY i, j) AS "A3" ON A.j = A3.i
+        GROUP BY A.i, A3.j
+        ORDER BY i, j)
 
-            GROUP BY i;
+        GROUP BY i;
 
 
 
