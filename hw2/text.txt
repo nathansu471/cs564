@@ -1,0 +1,4 @@
+Category(Category_Name, ItemID)
+Items(ItemID, Name, Category, Currently, Buy_Price, First_Bid, Number_of_Bids, Location, Country, Started, Ends, Description)
+Bids(BidID, Time, Amount, UserID)
+User(UserID, Location, Country, Rating)
