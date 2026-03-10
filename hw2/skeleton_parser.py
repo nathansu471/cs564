@@ -76,32 +76,53 @@ of the necessary SQL tables for your database.
 def parseJson(json_file):
     with open(json_file, 'r') as f:
         items = loads(f.read())['Items'] # creates a Python dictionary of Items for the supplied json file
+        print(items[0])
+
+        count = 1
+
+        formatted_lines = []
+
         for item in items:
-            # print(str(item)[:100])
-
-            con = sqlite3.connect(":memory:")
-            con.execute("")
-            # import sqlite3
-
-            # persons = [
-            #     ("Hugo", "Boss"),
-            #     ("Calvin", "Klein")
-            # ]
-
-            # con = sqlite3.connect(":memory:")
-
-            # # Create the table
-            # con.execute("create table person(firstname, lastname)")
-
-            # # Fill the table
-            # con.executemany("insert into person(firstname, lastname) values (?,?)", persons)
-
             """
             TODO: traverse the items dictionary to extract information from the
             given `json_file' and generate the necessary .dat files to generate
             the SQL tables based on your relation design
             """
-            pass
+            
+            print(item["ItemID"])
+
+            line = f"{item["ItemID"]} | {item["Name"]}"
+
+            # separate into entities and relationships, then write to .dat files
+            # bids, items, categories, users
+
+            # Category(Category_Name, ItemID)
+            # Items(ItemID, Name, Category, Currently, Buy_Price, First_Bid, Number_of_Bids, Location, Country, Started, Ends, Description)
+            # Bids(BidID, Time, Amount, UserID)
+            # User(UserID, Location, Country, Rating)
+
+            category_line = f"{item['Category']} | {item['ItemID']}\n"
+            with open("category.dat", "w") as f:
+                f.writelines(category_line)
+
+            items_line = f"{item['ItemID']} | {item['Name']} | {item['Currently']} | {item['Buy_Price']} | {item['First_Bid']} | {item['Number_of_Bids']} | {item['Location']} | {item['Country']} | {item['Started']} | {item['Ends']} | {item['Description']}"
+
+            bids_line = f"{item['BidID']} | {item['Time']} | {item['Amount']} | {item['UserID']}"
+
+            user_line = f"{item['UserID']} | {item['Location']} | {item['Country']} | {item['Rating']}"
+
+            # Dollar and date/time values.
+            # Duplicate elimination.
+            # create runParser.sh
+
+            # line = f"{item['Item']} | {item['age']}\n"
+            # formatted_lines.append(line)
+
+            # # 3. Write the formatted data to a .dat file
+            # with open("parsed.dat", 'w') as f:
+            #     f.writelines(formatted_lines)
+
+        print(formatted_lines)
 
 """
 Loops through each json files provided on the command line and passes each file
