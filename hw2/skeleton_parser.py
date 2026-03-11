@@ -80,7 +80,9 @@ def parseJson(json_file):
         category_file = open("category.dat", "a")
         items_file = open("items.dat", "a")
         bids_file = open("bids.dat", "a")
-        user_file = open("user.dat", "a")
+        users_file = open("users.dat", "a")
+
+        written_users = set()
 
         for item in items:
             """
@@ -88,18 +90,13 @@ def parseJson(json_file):
             given `json_file' and generate the necessary .dat files to generate
             the SQL tables based on your relation design
             """
-            # category
-            # Category(Category_Name, ItemID)
+
+            # items
+            # Items(ItemID, UserID, Name, Category, Currently, Buy_Price, First_Bid, Number_of_Bids, Started, Ends, Description)
+            items_line = []
             itemID = item["ItemID"]
             if itemID == None:
                 itemID = "NULL"
-            for category in item["Category"]:
-                category_line = ['"' + sub('"', '""', category) + '"', itemID]
-                category_file.write("|".join(category_line) + "\n")
-
-            # items
-            # Items(ItemID, UserID, Name, Category, Currently, Buy_Price, First_Bid, Number_of_Bids, Location, Country, Started, Ends, Description)
-            items_line = []
             items_line.append(itemID)
 
             if item["Seller"]["UserID"] == None:
@@ -137,18 +134,6 @@ def parseJson(json_file):
             else:
                 number_of_bids = str(item["Number_of_Bids"])
                 items_line.append(number_of_bids)
-            
-            if item["Location"] == None:
-                items_line.append("NULL")
-            else:
-                location = '"' + sub('"', '""', item["Location"]) + '"'
-                items_line.append(location)
-
-            if item["Country"] == None:
-                items_line.append("NULL")
-            else:
-                country = '"' + sub('"', '""', item["Country"]) + '"'
-                items_line.append(country)
 
             if item["Started"] == None:
                 items_line.append("NULL")
@@ -170,10 +155,14 @@ def parseJson(json_file):
 
             items_file.write("|".join(items_line) + "\n")
 
+            # category
+            # Category(Category_Name, ItemID)
+            for category in item["Category"]:
+                category_line = ['"' + sub('"', '""', category) + '"', itemID]
+                category_file.write("|".join(category_line) + "\n")
+
             # bids
             #Bids(BidID, UserID, Time, Amount)
-            bids = item["Bids"]
-
             if "Bids" not in item or item["Bids"] == None:
                 bids_file.write(itemID + "|" + "NULL" + "|" + "NULL" + "|" + "NULL" + "\n")
             else:
@@ -209,7 +198,8 @@ def parseJson(json_file):
             
             # users
             # User(UserID, Location, Country, Rating)
-            if "Seller" in item and item["Seller"] != None:
+            # sellers
+            if "Seller" in item and item["Seller"] != None and item["Seller"]["UserID"] not in written_users:
                 user_line = []
                 if "UserID" in item["Seller"] and item["Seller"]["UserID"] != None:
                     userID = '"' + sub('"', '""', item["Seller"]["UserID"]) + '"'
@@ -235,12 +225,52 @@ def parseJson(json_file):
                 else:
                     user_line.append("NULL")
 
-                user_file.write("|".join(user_line) + "\n")
+                users_file.write("|".join(user_line) + "\n")
+                written_users.add(item["Seller"]["UserID"])
+
+            # bidders
+            if "Bids" in item and item["Bids"] != None:
+                for bid in item["Bids"]:
+                    bidder = bid["Bid"]["Bidder"]
+
+                    userID_raw = bidder.get("UserID", None)
+                    if userID_raw is None or userID_raw in written_users:
+                        continue
+
+                    user_line = []
+
+                    if "UserID" in bidder and bidder["UserID"] != None:
+                        userID = '"' + sub('"', '""', bidder["UserID"]) + '"'
+                        user_line.append(userID)
+                    else:
+                        user_line.append("NULL")
+
+                    if "Location" in bidder and bidder["Location"] != None:
+                        location = '"' + sub('"', '""', bidder["Location"]) + '"'
+                        user_line.append(location)
+                    else:
+                        user_line.append("NULL")
+
+                    if "Country" in bidder and bidder["Country"] != None:
+                        country = '"' + sub('"', '""', bidder["Country"]) + '"'
+                        user_line.append(country)
+                    else:
+                        user_line.append("NULL")
+
+                    if "Rating" in bidder and bidder["Rating"] != None:
+                        rating = str(bidder["Rating"])
+                        user_line.append(rating)
+                    else:
+                        user_line.append("NULL")
+
+                    users_file.write("|".join(user_line) + "\n")
+                    written_users.add(bidder["UserID"])
+
 
         category_file.close()
         items_file.close()
         bids_file.close()
-        user_file.close()
+        users_file.close()
 
 
 """

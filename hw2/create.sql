@@ -1,0 +1,42 @@
+DROP TABLE IF EXISTS Items;
+CREATE TABLE Items (
+  ItemID INTEGER NOT NULL,
+  UserID TEXT,
+  Name TEXT,
+  Currently REAL,
+  Buy_Price REAL,
+  First_Bid REAL,
+  Number_of_Bids INTEGER,
+  Started DATETIME,
+  Ends TEXT,
+  Description TEXT,
+  PRIMARY KEY(ItemID)
+);
+
+DROP TABLE IF EXISTS Category;
+CREATE TABLE Category (
+  Category_Name TEXT NOT NULL,
+  ItemID INTEGER NOT NULL,
+  FOREIGN KEY(ItemID) REFERENCES Items(ItemID),
+  PRIMARY KEY(Category_Name, ItemID)
+);
+
+DROP TABLE IF EXISTS Users;
+CREATE TABLE Users (
+  UserID TEXT UNIQUE NOT NULL,
+  Location TEXT,
+  Country TEXT,
+  Rating INTEGER,
+  PRIMARY KEY(UserID)
+);
+
+DROP TABLE IF EXISTS Bids;
+CREATE TABLE Bids (
+  ItemID INTEGER NOT NULL,
+  UserID TEXT NOT NULL,
+  Time DATETIME,
+  Amount REAL NOT NULL,
+  FOREIGN KEY(ItemID) REFERENCES Items(ItemID),
+  FOREIGN KEY(UserID) REFERENCES Users(UserID),
+  PRIMARY KEY(ItemID, UserID, Amount)
+);
