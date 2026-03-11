@@ -82,6 +82,12 @@ def parseJson(json_file):
 
         formatted_lines = []
 
+        category_file = open("category.dat", "a")
+        items_file = open("items.dat", "a")
+        bids_file = open("bids.dat", "a")
+        user_file = open("user.dat", "a")
+
+
         for item in items:
             """
             TODO: traverse the items dictionary to extract information from the
@@ -101,9 +107,24 @@ def parseJson(json_file):
             # Bids(BidID, Time, Amount, UserID)
             # User(UserID, Location, Country, Rating)
 
-            category_line = f"{item['Category']} | {item['ItemID']}\n"
+            if item["ItemID"] == None:
+                item["ItemID"] = "NULL"
+            for category in item["Category"]:
+                category_line = 
+                
+
+            category_line = f"{item['Category']} | {item['ItemID']}\n"1 
             with open("category.dat", "w") as f:
                 f.writelines(category_line)
+
+            # category table
+            categories = item["Category"]
+            itemID = item["ItemID"]
+            if itemID == None:
+                itemID = "NULL"
+            for category in categories:
+                line = ['\"' + sub('\"','\"\"',category) + '\"', itemID]
+                file1.write("|".join(line) + "\n")
 
             items_line = f"{item['ItemID']} | {item['Name']} | {item['Currently']} | {item['Buy_Price']} | {item['First_Bid']} | {item['Number_of_Bids']} | {item['Location']} | {item['Country']} | {item['Started']} | {item['Ends']} | {item['Description']}"
 
