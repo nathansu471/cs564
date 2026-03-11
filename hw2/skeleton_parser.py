@@ -95,9 +95,7 @@ def parseJson(json_file):
             the SQL tables based on your relation design
             """
             
-            print(item["ItemID"])
-
-            line = f"{item["ItemID"]} | {item["Name"]}"
+            #print(item["ItemID"])
 
             # separate into entities and relationships, then write to .dat files
             # bids, items, categories, users
@@ -106,31 +104,19 @@ def parseJson(json_file):
             # Items(ItemID, Name, Category, Currently, Buy_Price, First_Bid, Number_of_Bids, Location, Country, Started, Ends, Description)
             # Bids(BidID, Time, Amount, UserID)
             # User(UserID, Location, Country, Rating)
-
-            if item["ItemID"] == None:
-                item["ItemID"] = "NULL"
+            ItemID = item["ItemID"]
+            if ItemID == None:
+                ItemID = "NULL"
             for category in item["Category"]:
-                category_line = 
-                
+                category_line = ['"' + sub('"', '""', category) + '"', ItemID]
+                category_file.write("|".join(category_line) + "\n")
 
-            category_line = f"{item['Category']} | {item['ItemID']}\n"1 
-            with open("category.dat", "w") as f:
-                f.writelines(category_line)
 
-            # category table
-            categories = item["Category"]
-            itemID = item["ItemID"]
-            if itemID == None:
-                itemID = "NULL"
-            for category in categories:
-                line = ['\"' + sub('\"','\"\"',category) + '\"', itemID]
-                file1.write("|".join(line) + "\n")
+            # items_line = f"{item['ItemID']} | {item['Name']} | {item['Currently']} | {item['Buy_Price']} | {item['First_Bid']} | {item['Number_of_Bids']} | {item['Location']} | {item['Country']} | {item['Started']} | {item['Ends']} | {item['Description']}"
 
-            items_line = f"{item['ItemID']} | {item['Name']} | {item['Currently']} | {item['Buy_Price']} | {item['First_Bid']} | {item['Number_of_Bids']} | {item['Location']} | {item['Country']} | {item['Started']} | {item['Ends']} | {item['Description']}"
+            # bids_line = f"{item['BidID']} | {item['Time']} | {item['Amount']} | {item['UserID']}"
 
-            bids_line = f"{item['BidID']} | {item['Time']} | {item['Amount']} | {item['UserID']}"
-
-            user_line = f"{item['UserID']} | {item['Location']} | {item['Country']} | {item['Rating']}"
+            # user_line = f"{item['UserID']} | {item['Location']} | {item['Country']} | {item['Rating']}"
 
             # Dollar and date/time values.
             # Duplicate elimination.
