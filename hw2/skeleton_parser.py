@@ -76,17 +76,11 @@ of the necessary SQL tables for your database.
 def parseJson(json_file):
     with open(json_file, 'r') as f:
         items = loads(f.read())['Items'] # creates a Python dictionary of Items for the supplied json file
-        print(items[0])
-
-        count = 1
-
-        formatted_lines = []
 
         category_file = open("category.dat", "a")
         items_file = open("items.dat", "a")
         bids_file = open("bids.dat", "a")
         user_file = open("user.dat", "a")
-
 
         for item in items:
             """
@@ -94,42 +88,160 @@ def parseJson(json_file):
             given `json_file' and generate the necessary .dat files to generate
             the SQL tables based on your relation design
             """
-            
-            #print(item["ItemID"])
-
-            # separate into entities and relationships, then write to .dat files
-            # bids, items, categories, users
-
+            # category
             # Category(Category_Name, ItemID)
-            # Items(ItemID, Name, Category, Currently, Buy_Price, First_Bid, Number_of_Bids, Location, Country, Started, Ends, Description)
-            # Bids(BidID, Time, Amount, UserID)
-            # User(UserID, Location, Country, Rating)
-            ItemID = item["ItemID"]
-            if ItemID == None:
-                ItemID = "NULL"
+            itemID = item["ItemID"]
+            if itemID == None:
+                itemID = "NULL"
             for category in item["Category"]:
-                category_line = ['"' + sub('"', '""', category) + '"', ItemID]
+                category_line = ['"' + sub('"', '""', category) + '"', itemID]
                 category_file.write("|".join(category_line) + "\n")
 
+            # items
+            # Items(ItemID, UserID, Name, Category, Currently, Buy_Price, First_Bid, Number_of_Bids, Location, Country, Started, Ends, Description)
+            items_line = []
+            items_line.append(itemID)
 
-            # items_line = f"{item['ItemID']} | {item['Name']} | {item['Currently']} | {item['Buy_Price']} | {item['First_Bid']} | {item['Number_of_Bids']} | {item['Location']} | {item['Country']} | {item['Started']} | {item['Ends']} | {item['Description']}"
+            if item["Seller"]["UserID"] == None:
+                items_line.append("NULL")
+            else:
+                userID = '"' + sub('"', '""', item["Seller"]["UserID"]) + '"'
+                items_line.append(userID)
 
-            # bids_line = f"{item['BidID']} | {item['Time']} | {item['Amount']} | {item['UserID']}"
+            if item["Name"] == None:
+                items_line.append("NULL")
+            else:
+                name = '"' + sub('"', '""', item["Name"]) + '"'
+                items_line.append(name)
 
-            # user_line = f"{item['UserID']} | {item['Location']} | {item['Country']} | {item['Rating']}"
+            if item["Currently"] == None:
+                items_line.append("NULL")
+            else:             
+                 currently = transformDollar(str(item["Currently"]))
+                 items_line.append(currently)
 
-            # Dollar and date/time values.
-            # Duplicate elimination.
-            # create runParser.sh
+            if "Buy_Price" not in item or item["Buy_Price"] == None:
+                items_line.append("NULL")
+            else:
+                buy_price = transformDollar(str(item["Buy_Price"]))
+                items_line.append(buy_price)
 
-            # line = f"{item['Item']} | {item['age']}\n"
-            # formatted_lines.append(line)
+            if item["First_Bid"] == None:
+                items_line.append("NULL")
+            else:
+                first_bid = transformDollar(str(item["First_Bid"]))
+                items_line.append(first_bid)
 
-            # # 3. Write the formatted data to a .dat file
-            # with open("parsed.dat", 'w') as f:
-            #     f.writelines(formatted_lines)
+            if item["Number_of_Bids"] == None:
+                items_line.append("NULL")
+            else:
+                number_of_bids = str(item["Number_of_Bids"])
+                items_line.append(number_of_bids)
+            
+            if item["Location"] == None:
+                items_line.append("NULL")
+            else:
+                location = '"' + sub('"', '""', item["Location"]) + '"'
+                items_line.append(location)
 
-        print(formatted_lines)
+            if item["Country"] == None:
+                items_line.append("NULL")
+            else:
+                country = '"' + sub('"', '""', item["Country"]) + '"'
+                items_line.append(country)
+
+            if item["Started"] == None:
+                items_line.append("NULL")
+            else:
+                started = transformDttm(str(item["Started"]))
+                items_line.append(started)
+
+            if item["Ends"] == None:
+                items_line.append("NULL")
+            else:
+                ends = transformDttm(str(item["Ends"]))
+                items_line.append(ends)
+
+            if item["Description"] == None:
+                items_line.append("NULL")
+            else:
+                description = '"' + sub('"', '""', item["Description"]) + '"'
+                items_line.append(description)
+
+            items_file.write("|".join(items_line) + "\n")
+
+            # bids
+            #Bids(BidID, UserID, Time, Amount)
+            bids = item["Bids"]
+
+            if "Bids" not in item or item["Bids"] == None:
+                bids_file.write(itemID + "|" + "NULL" + "|" + "NULL" + "|" + "NULL" + "\n")
+            else:
+                for bid in item["Bids"]:
+                    bid_line = []
+
+                    if itemID == None:
+                        bid_line.append("NULL")
+                    else:
+                        bid_line.append(itemID)
+
+                    if bid["Bid"]["Bidder"]["UserID"] == None:
+                        bid_line.append("NULL")
+                    else:
+                        userID = '"' + sub('"', '""', bid["Bid"]["Bidder"]["UserID"]) + '"'
+                        bid_line.append(userID)
+
+                    if bid["Bid"]["Time"] == None:
+                        bid_line.append("NULL")
+                    else:
+                        time = transformDttm(str(bid["Bid"]["Time"]))
+                        bid_line.append(time)
+
+                    if bid["Bid"]["Amount"] == None:
+                        bid_line.append("NULL")
+                    else:
+                        amount = transformDollar(str(bid["Bid"]["Amount"]))
+                        bid_line.append(amount)
+
+                    bids_file.write("|".join(bid_line) + "\n")
+
+                    
+            
+            # users
+            # User(UserID, Location, Country, Rating)
+            if "Seller" in item and item["Seller"] != None:
+                user_line = []
+                if "UserID" in item["Seller"] and item["Seller"]["UserID"] != None:
+                    userID = '"' + sub('"', '""', item["Seller"]["UserID"]) + '"'
+                    user_line.append(userID)
+                else:
+                    user_line.append("NULL")
+
+                if "Location" in item and item["Location"] != None:
+                    location = '"' + sub('"', '""', item["Location"]) + '"'
+                    user_line.append(location)
+                else:
+                    user_line.append("NULL")
+
+                if "Country" in item and item["Country"] != None:
+                    country = '"' + sub('"', '""', item["Country"]) + '"'
+                    user_line.append(country)
+                else:
+                    user_line.append("NULL")
+
+                if "Rating" in item["Seller"] and item["Seller"]["Rating"] != None:
+                    rating = str(item["Seller"]["Rating"])
+                    user_line.append(rating)
+                else:
+                    user_line.append("NULL")
+
+                user_file.write("|".join(user_line) + "\n")
+
+        category_file.close()
+        items_file.close()
+        bids_file.close()
+        user_file.close()
+
 
 """
 Loops through each json files provided on the command line and passes each file
